@@ -10,10 +10,6 @@ class GameBoard:
 				cellRow.clear()
 
 
-			# self.grid.append(SudokuCell(num, grid.index))
-			
-
-
 	def printGrid(self):
 		for row in self.grid:
 			for cell in row:
@@ -27,31 +23,81 @@ class GameBoard:
 		cellValue = str(value)
 		for row in self.grid:
 			for cell in row:
-				print(cell.value, " ", value)
+				# print(cell.value, " ", value)
 				if cell.value == str(value):
-					print('Value in row')
 				# Mark rows
 					for cell in row:
-						print('Mark row')
 						cell.mark()
-
-					#Mark columns
+					#Create list of columns to be marked
 					colIndeces.append(row.index(SudokuCell(str(value))))
-
+		# Mark each column in the grid according to the list we generated
 		for row in self.grid:
 			for index in colIndeces:
-				print('Mark col')
 				row[index].mark()
 
 		return self
 
+	# check if all cells are marked
+	def isAllMArked(self):
+		for row in self.grid:
+			for cell in row:
+				if not cell.marked:
+					return False
+		return True 
+
+	# removes marks from all cells in the sudoku grid
+	def unmarkAll(self):
+		for row in self.grid:
+			for cell in row:
+				cell.unmark()
+
+	# Function makes possible changes
+	def solve(self):
+		queue = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+		while len(queue) > 0:
+			self = self.crosshatch(queue[0])
+			# look at nonet
+			# if there is ONE AND ONLY ONE zero, change that zero to queue[0]
+			# else, move to next nonet
+			for rowIndex in range(0, 6 + 1, 3):
+				for colIndex in range(0, 6 + 1, 3):
+					numBlankSpaces = 0
+					makeChanges = False
+					for i in range(0, 2 + 1):
+						for j in range(0, 2 + 1):
+							# if you find a blank space, save its row and column and increase num of blank spaces
+							if (not self.grid[rowIndex + i][colIndex + j].marked) and self.grid[rowIndex + i][colIndex + j].value == "0" :
+								blankRow = rowIndex + i
+								blankCol = colIndex + j
+								numBlankSpaces += 1
+
+							# if the value is already in nonet, or there are more than 1 blank spaces, can't make change
+							if self.grid[rowIndex + i][colIndex + j].value == queue[0] or numBlankSpaces != 1:
+								makeChanges = False
+							# otherwise, you can make a change
+							else:
+								makeChanges = True		
+					print()
+
+					if makeChanges:
+						print("Making change to grid")
+						self.grid[blankRow][blankCol].value = queue[0]
+						self.crosshatch(queue[0])
+					else:
+						print("Not making changes")
 
 
-	# def solve():
-	# 	queue 1-9
-	# 	while not solved
-	# 		crosshatch(queue)
-	# 		check if 
+			# if every element is marked, remove that value from the Queue
+			if self.isAllMArked():
+				queue.pop(0)
+			# else, move that value to the back of the queue
+			else:
+				queue.append(queue.pop(0))
+
+			self.unmarkAll()
+
+
+
 
 
 # Represents a single cell on the Sudoku Game Board
