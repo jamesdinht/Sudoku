@@ -22,15 +22,14 @@ def getSudokuGrid(fileName):
 	for grid in gridList:
 		grid.printGrid()
 
-
-
-
+	return gridList
 
 
 # MAIN METHOD
 def main(fileName):
-	getSudokuGrid(fileName)
-
+	gridList = getSudokuGrid(fileName)
+	gridList[0].solve()
+	gridList[0].printGrid()
 
 if __name__ == '__main__':
 	main(sys.argv[1])

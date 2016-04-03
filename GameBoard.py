@@ -62,41 +62,46 @@ class GameBoard:
 			for rowIndex in range(0, 6 + 1, 3):
 				for colIndex in range(0, 6 + 1, 3):
 					numBlankSpaces = 0
-					makeChanges = False
+					makeChanges = duplicateInNonet = False
 					for i in range(0, 2 + 1):
 						for j in range(0, 2 + 1):
 							# if you find a blank space, save its row and column and increase num of blank spaces
-							if (not self.grid[rowIndex + i][colIndex + j].marked) and self.grid[rowIndex + i][colIndex + j].value == "0" :
+							if (not self.grid[rowIndex + i][colIndex + j].marked) and self.grid[rowIndex + i][colIndex + j].value == "0":
+								print("Blank space found")
 								blankRow = rowIndex + i
 								blankCol = colIndex + j
 								numBlankSpaces += 1
 
-							# if the value is already in nonet, or there are more than 1 blank spaces, can't make change
-							if self.grid[rowIndex + i][colIndex + j].value == queue[0] or numBlankSpaces != 1:
+							# IF THE VALUE IS FOUND IN THE NONET YOU NEED TO BUST OUT OF THERE IMMEDIATELY
+							if self.grid[rowIndex + i][colIndex + j].value == queue[0]:
+								duplicateInNonet = True
+
+							# if there are more than 1 unmarked blank spaces, can't make change
+							if numBlankSpaces != 1:
 								makeChanges = False
 							# otherwise, you can make a change
 							else:
 								makeChanges = True		
-					print()
+					# print()
 
-					if makeChanges:
-						print("Making change to grid")
+					if makeChanges and not duplicateInNonet:
+						# print("Making change to grid")
 						self.grid[blankRow][blankCol].value = queue[0]
-						self.crosshatch(queue[0])
-					else:
-						print("Not making changes")
+						self = self.crosshatch(queue[0])
+					# else:
+					# 	print("Not making changes")
 
 
 			# if every element is marked, remove that value from the Queue
 			if self.isAllMArked():
+				print("Popping Queue", queue[0])
 				queue.pop(0)
 			# else, move that value to the back of the queue
 			else:
+				print("Moving ", queue[0], " to back of Queue")
 				queue.append(queue.pop(0))
 
 			self.unmarkAll()
-
-
 
 
 
