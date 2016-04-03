@@ -39,43 +39,49 @@ class GameBoard:
 			for cell in row:
 				# print(cell.value, " ", value)
 				if cell.value == cellValue:
-					if mark:
 						# Mark rows
 						for cell in row:
-							cell.mark()
+							if mark:
+								cell.mark()
+							else:
+								if cellValue in cell.pencilInList:
+									cell.pencilInList.remove(cellValue)
 						#Create list of columns to be marked
 						colIndeces.append(row.index(SudokuCell(str(value))))
-					else:
-						if cellValue in cell.pencilInList:
-							cell.pencilInList.remove(cellValue)
 		# Mark each column in the grid according to the list we generated
 		for row in self.grid:
 			for index in colIndeces:
 				if mark:
 					row[index].mark()
 				else:
-					row[index].pencilInList.remove(cellValue)
+					if cellValue in row[index].pencilInList:
+						row[index].pencilInList.remove(cellValue)
 
 		return self
+
+	def fillIn(self, row, col, replacementValue):
+		self.grid[row][col].value = replacementValue
 
 	def pencilIn(self, pencilInList, nonetRow, nonetCol):
 		for i in range(0, 2 + 1):
 			for j in range(0, 2 + 1):
 				if self.grid[nonetRow + i][nonetCol + j].isBlank():
 					self.grid[nonetRow + i][nonetCol + j].initPencilInList(pencilInList)
-					for num in pencilInList:
+					for num in range(1, 10):
 						self.crosshatch(num, mark=False)
-		return
+					if len(pencilInList) == 1:
+						self.fillIn(nonetRow + i, nonetCol + j, pencilInList[0])
+						pencilInList.remove(pencilInList[0])
+						self.pencilIn(pencilInList, nonetRow, nonetCol)
 
-	def fillIn(self, row, col, replacementValue):
-		self.grid[row][col].value = replacementValue
+		return self
 
 	# Function makes possible changes
 	def solve(self):
 		queue = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
 		numOfPasses = 0
 
-		while queue and numOfPasses <= 18:
+		while queue and numOfPasses <= len(queue)*3:
 			self = self.crosshatch(queue[0])
 			# look at nonet
 			# if there is ONE AND ONLY ONE zero, change that zero to queue[0]
@@ -88,32 +94,36 @@ class GameBoard:
 
 					for i in range(0, 2 + 1):
 						for j in range(0, 2 + 1):
-							# if you find a blank space, save its row and column and increase num of blank spaces
-							if (not self.grid[rowIndex + i][colIndex + j].marked) and self.grid[rowIndex + i][colIndex + j].value == "0":
-								blankRow = rowIndex + i
-								blankCol = colIndex + j
-								numBlankSpaces += 1
 
-							# Prepare penciling in list for all blank spaces in a single nonet
-							if self.grid[rowIndex + i][colIndex + j].value in pencilInList:
-								pencilInList.remove(self.grid[rowIndex + i][colIndex + j].value)
+							if numOfPasses <= 18:
+								# if you find a blank space, save its row and column and increase num of blank spaces
+								if (not self.grid[rowIndex + i][colIndex + j].marked) and self.grid[rowIndex + i][colIndex + j].value == "0":
+									blankRow = rowIndex + i
+									blankCol = colIndex + j
+									numBlankSpaces += 1
 
-							# IF THE VALUE IS FOUND IN THE NONET YOU NEED TO BUST OUT OF THERE IMMEDIATELY
-							if self.grid[rowIndex + i][colIndex + j].value == queue[0]:
-								duplicateInNonet = True
+								# Prepare penciling in list for all blank spaces in a single nonet
+								if self.grid[rowIndex + i][colIndex + j].value in pencilInList:
+									pencilInList.remove(self.grid[rowIndex + i][colIndex + j].value)
 
-							# if there are more than 1 unmarked blank spaces, can't make change
-							if numBlankSpaces != 1:
-								makeChanges = False
-							# otherwise, you can make a change
-							else:
-								makeChanges = True		
+								# IF THE VALUE IS FOUND IN THE NONET YOU NEED TO BUST OUT OF THERE IMMEDIATELY
+								if self.grid[rowIndex + i][colIndex + j].value == queue[0]:
+									duplicateInNonet = True
 
-					if makeChanges and not duplicateInNonet:
-						self.fillIn(blankRow, blankCol, queue[0])
-						self = self.crosshatch(queue[0])
+								# if there are more than 1 unmarked blank spaces, can't make change
+								if numBlankSpaces != 1:
+									makeChanges = False
+								# otherwise, you can make a change
+								else:
+									makeChanges = True		
 
-					self.pencilIn(pencilInList, rowIndex, colIndex)
+					if numOfPasses <= 18:
+						if makeChanges and not duplicateInNonet:
+							self.fillIn(blankRow, blankCol, queue[0])
+							self = self.crosshatch(queue[0])
+
+					if numOfPasses >= 18:
+						self.pencilIn(pencilInList, rowIndex, colIndex)
 
 			# if every element is marked, remove that value from the Queue
 			if self.isAllMarked():
@@ -121,7 +131,7 @@ class GameBoard:
 			# else, move that value to the back of the queue
 			else:
 				queue.append(queue.pop(0))
-
+			numOfPasses += 1
 			self.unmarkAll()
 
 
