@@ -1,4 +1,5 @@
 import sys
+from GameBoard import *
 
 def getSudokuGrid(fileName):
 	sudokuFile = open(fileName, 'r')
@@ -15,12 +16,21 @@ def getSudokuGrid(fileName):
 			sudokuGrid += line[:-1]
 		# when a grid is complete, add it to the gridList
 		if len(sudokuGrid) == 81:
-			gridList.append(list(sudokuGrid))
+			gridList.append(GameBoard(list(sudokuGrid)))
 			sudokuGrid = ""
+
+	for grid in gridList:
+		grid.printGrid()
+
+
+
+
+
 
 # MAIN METHOD
 def main(fileName):
 	getSudokuGrid(fileName)
+
 
 if __name__ == '__main__':
 	main(sys.argv[1])
